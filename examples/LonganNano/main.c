@@ -80,6 +80,59 @@ void trap_entry(void)
 }
 #endif
 
+
+void
+set_pixel(unsigned int x, unsigned int y, unsigned int rgb444)
+{
+    dp_fill(x, y, 1, 1, rgb444);
+}
+
+
+int
+read_number()
+{
+    char ten = getchar() - '0';
+    if (ten < 0 || ten > 9) return -1;
+
+    char one = getchar() - '0';
+    if (one < 0 || one > 9) return -1;
+
+    return 10 * ten + one;
+}
+
+
+
+int
+read_hex_char()
+{
+    char r = getchar();
+    if ((r - '0') >= 0 && (r - '0') <= 9) {
+        r = r - '0';
+    } else if ((r - 'a') >= 0 && (r - 'a') <= 5) {
+        r = r - 'a' + 10;
+    } else {
+        return -1;
+    }
+    return r;
+}
+
+
+int
+read_color()
+{
+    int r = read_hex_char();
+    if (r == -1) return -1;
+
+    int g = read_hex_char();
+    if (g == -1) return -1;
+
+    int b = read_hex_char();
+    if (b == -1) return -1;
+
+    return (r * 16 * 16) + (g * 16) + b;
+}
+
+
 int main(void)
 {
 	struct term term;
@@ -116,34 +169,38 @@ int main(void)
 
 	dp_init();
 	dp_fill(0,0,160,80,0x000);
-	dp_puts(&ter16n, 3*ter16n.width, 0*ter16n.height, 0xfff, 0x000, "Hello World!");
-	dp_puts(&ter16n, 3*ter16n.width, 1*ter16n.height, 0xf00, 0x000, "Hello World!");
-	dp_puts(&ter16n, 3*ter16n.width, 2*ter16n.height, 0x0f0, 0x000, "Hello World!");
-	dp_puts(&ter16n, 3*ter16n.width, 3*ter16n.height, 0x00f, 0x000, "Hello World!");
-	dp_puts(&ter16n, 3*ter16n.width, 4*ter16n.height, 0xf0f, 0x000, "Hello World!");
+    /*
+	dp_puts(&ter16n, 3*ter16n.width, 0*ter16n.height, 0xfff, 0x000, "Hella World!");
+	dp_puts(&ter16n, 3*ter16n.width, 1*ter16n.height, 0xf00, 0x000, "Hellb World!");
+	dp_puts(&ter16n, 3*ter16n.width, 2*ter16n.height, 0x0f0, 0x000, "Hellc World!");
+	dp_puts(&ter16n, 3*ter16n.width, 3*ter16n.height, 0x00f, 0x000, "Helld World!");
+	dp_puts(&ter16n, 3*ter16n.width, 4*ter16n.height, 0xf0f, 0x000, "Helle World!");
+    */
 	dp_on();
-
-	dp_line(0,0,160,80,0xf00);
-	dp_line(160,0,0,80,0xf00);
 
 	term_init(&term, 0xfff, 0x000);
 
 	while (1) {
+        // Protocol example: PX 23 42 ff8
 		char c = getchar();
 
-		switch (c) {
-		case '\r':
-			term_putchar(&term, '\n');
-			break;
-		case '\t':
-			term_putchar(&term, ' ');
-			term_putchar(&term, ' ');
-			break;
-		case 0x7f:
-			term_delete(&term);
-			break;
-		default:
-			term_putchar(&term, c);
-		}
+        if (c == 'P') {
+            if (getchar() != 'X') continue;
+            if (getchar() != ' ') continue;
+
+            int x = read_number();
+            if (x == -1) continue;
+            if (getchar() != ' ') continue;
+
+            int y = read_number();
+            if (y == -1) continue;
+            if (getchar() != ' ') continue;
+
+            int color = read_color();
+            if (color == -1) continue;
+
+            set_pixel(x, y, color);
+        }
 	}
+
 }
