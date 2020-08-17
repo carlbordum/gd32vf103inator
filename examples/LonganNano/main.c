@@ -91,13 +91,16 @@ set_pixel(unsigned int x, unsigned int y, unsigned int rgb444)
 int
 read_number()
 {
+    char hundred = getchar() - '0';
+    if (hundred < 0 || hundred > 9) return -1;
+
     char ten = getchar() - '0';
     if (ten < 0 || ten > 9) return -1;
 
     char one = getchar() - '0';
     if (one < 0 || one > 9) return -1;
 
-    return 10 * ten + one;
+    return 100 * hundred + 10 * ten + one;
 }
 
 
@@ -168,7 +171,7 @@ int main(void)
 	gpio_pin_config(LED_BLUE,  GPIO_MODE_OD_2MHZ);
 
 	dp_init();
-	dp_fill(0,0,160,80,0x000);
+	dp_fill(0,0,160,80,0xfff);
     /*
 	dp_puts(&ter16n, 3*ter16n.width, 0*ter16n.height, 0xfff, 0x000, "Hella World!");
 	dp_puts(&ter16n, 3*ter16n.width, 1*ter16n.height, 0xf00, 0x000, "Hellb World!");
@@ -181,26 +184,26 @@ int main(void)
 	term_init(&term, 0xfff, 0x000);
 
 	while (1) {
-        // Protocol example: PX 23 42 ff8
-		char c = getchar();
+            // Protocol example: PX 23 42 ff8
+            char c = getchar();
 
-        if (c == 'P') {
-            if (getchar() != 'X') continue;
-            if (getchar() != ' ') continue;
+            if (c == 'P') {
+                if (getchar() != 'X') continue;
+                if (getchar() != ' ') continue;
 
-            int x = read_number();
-            if (x == -1) continue;
-            if (getchar() != ' ') continue;
+                int x = read_number();
+                if (x == -1) continue;
+                if (getchar() != ' ') continue;
 
-            int y = read_number();
-            if (y == -1) continue;
-            if (getchar() != ' ') continue;
+                int y = read_number();
+                if (y == -1) continue;
+                if (getchar() != ' ') continue;
 
-            int color = read_color();
-            if (color == -1) continue;
+                int color = read_color();
+                if (color == -1) continue;
 
-            set_pixel(x, y, color);
-        }
+                set_pixel(x, y, color);
+            }
 	}
 
 }
